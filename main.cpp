@@ -5,6 +5,9 @@
 #include <mutex>
 #include <string>
 #include "compressor.h"
+#include "decompressor.h"
+
+bool decompress_mode = false;
 
 const int THREAD_COUNT = 4;
 const size_t CHUNK_SIZE = 1024 * 1024; // 1 MB
@@ -18,7 +21,20 @@ void compress_chunk(const std::string& chunk, int index) {
     compressed_chunks[index] = result;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc > 1 && std::string(argv[1]) == "--decompress") {
+        decompress_mode = true;
+    }
+
+    if (decompress_mode) {
+        std::ifstream in("output.rle", std::ios::binary);
+        std::ofstream out("decompressed.txt", std::ios::binary);
+        std::string compressed((std::istreambuf_iterator<char>(in)), {});
+        std::string decompressed = decompressRLE(compressed);
+        out << decompressed;
+        std::cout << "Decompression complete.\n";
+        return 0;
+    }
     std::ifstream in("input.txt", std::ios::binary);
     if (!in) {
         std::cerr << "Cannot open input.txt\n";
